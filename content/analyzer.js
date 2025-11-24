@@ -1273,6 +1273,27 @@ const PageAnalyzer = {
   // ============================================
 
   analyzeMeaningfulImages() {
+    // Use enhanced ImageScanner if available
+    if (typeof ImageScanner !== 'undefined') {
+      const scanResults = ImageScanner.scanAllImages();
+      const test7A = scanResults.tests['7.A'];
+
+      return {
+        testId: "7.A",
+        totalImages: scanResults.totalImages,
+        meaningfulImages: scanResults.images.filter(i => i.isMeaningful).length,
+        imagesWithAlt: scanResults.images.filter(i => i.hasAlt).length,
+        imagesWithoutAlt: test7A.failedImages ? test7A.failedImages.length : 0,
+        emptyAlt: scanResults.images.filter(i => i.alt === '' && i.isMeaningful).length,
+        functionalImages: scanResults.images.filter(i => i.isFunctional).length,
+        details: scanResults.images,
+        enhancedScan: test7A,
+        status: test7A.status,
+        findings: test7A.findings
+      };
+    }
+
+    // Fallback to basic analysis
     const images = Array.from(document.querySelectorAll("img"));
 
     const analysis = images.map((img) => ({
@@ -1315,6 +1336,30 @@ const PageAnalyzer = {
   },
 
   analyzeDecorativeImages() {
+    // Use enhanced ImageScanner if available
+    if (typeof ImageScanner !== 'undefined') {
+      const scanResults = ImageScanner.scanAllImages();
+      const test7B = scanResults.tests['7.B'];
+
+      const decorativeImages = scanResults.images.filter(i => i.isDecorative);
+      const properlyMarked = decorativeImages.filter(
+        img => img.alt === '' || ['presentation', 'none'].includes(img.role)
+      );
+
+      return {
+        testId: "7.B",
+        decorativeCount: decorativeImages.length,
+        totalImages: scanResults.totalImages,
+        properlyMarked: properlyMarked.length,
+        improperlyMarked: decorativeImages.length - properlyMarked.length,
+        details: decorativeImages,
+        enhancedScan: test7B,
+        status: test7B.status,
+        findings: test7B.findings
+      };
+    }
+
+    // Fallback to basic analysis
     const images = Array.from(document.querySelectorAll("img"));
 
     const decorative = images.filter(
@@ -1388,6 +1433,26 @@ const PageAnalyzer = {
   },
 
   analyzeImageNameRoleValue() {
+    // Use enhanced ImageScanner if available
+    if (typeof ImageScanner !== 'undefined') {
+      const scanResults = ImageScanner.scanAllImages();
+      const test7E = scanResults.tests['7.E'];
+
+      const functionalImages = scanResults.images.filter(i => i.isFunctional);
+
+      return {
+        testId: "7.E",
+        functionalImages: functionalImages.length,
+        withName: functionalImages.filter(i => i.hasProperAlt).length,
+        withoutName: functionalImages.filter(i => !i.hasProperAlt).length,
+        details: functionalImages,
+        enhancedScan: test7E,
+        status: test7E.status,
+        findings: test7E.findings
+      };
+    }
+
+    // Fallback to basic analysis
     const functionalImages = Array.from(
       document.querySelectorAll("img")
     ).filter(
@@ -2170,6 +2235,25 @@ const PageAnalyzer = {
       },
 
       "7.A": (data) => {
+        // Use enhanced scan results if available
+        if (data.enhancedScan) {
+          return {
+            status: data.enhancedScan.status === 'PASS' ? 'PASS' :
+                    data.enhancedScan.status === 'DNA' ? 'DNA' : 'FAIL',
+            findings: data.enhancedScan.findings,
+            details: data.enhancedScan.details || data.enhancedScan.result
+          };
+        }
+
+        // Fallback logic
+        if (data.totalImages === 0) {
+          return {
+            status: "DNA",
+            findings: "No images found on page",
+            details: "Test does not apply when no images are present",
+          };
+        }
+
         if (data.imagesWithoutAlt > 0) {
           return {
             status: "FAIL",
