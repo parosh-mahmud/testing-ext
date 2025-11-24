@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trusted Tester Exam Assistant</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔍 Trusted Tester</h1>
+            <p class="version">Exam Assistant v5.2.0</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="analyzer">Analyzer</button>
+            <button class="tab-btn" data-tab="manual">Manual Test</button>
+            <button class="tab-btn" data-tab="history">History</button>
+        </div>
+
+        <!-- Analyzer Tab -->
+        <div id="analyzer" class="tab-content active">
+            <div class="section">
+                <h3>Quick Page Analysis</h3>
+                <button id="analyzeCurrentPage" class="btn btn-primary">
+                    📊 Analyze Current Page
+                </button>
+                <div id="quickAnalysisResults" class="quick-results hidden"></div>
+            </div>
+
+            <div class="section">
+                <h3>Exam Question Analysis</h3>
+                <textarea id="examQuestion" placeholder="Paste the complete exam question here, including:
+
+Test ID: X.X
+Test Name: x.x.x-test-name
+Test Condition: [condition description]
+
+a. [First answer choice]
+b. [Second answer choice]  
+c. [Third answer choice]
+d. [Fourth answer choice]
+e. [Fifth answer choice]
+
+Example:
+Test ID: 12.A
+Test Name: 2.4.2-page-title-defined
+Test Condition: A <title> element is defined for the web page.
+
+a. Not Tested - No <title> element is needed for this type of page.
+b. Pass - A <title> element is defined for the web page.
+c. Fail - No <title> element is defined for this page.
+d. Does Not Apply - No <title> element is defined but the page is too short to need one.
+e. Fail - More than one <title> element is defined for the web page."></textarea>
+
+                <button id="analyzeQuestion" class="btn btn-success">
+                    🎯 Find Best Answer
+                </button>
+            </div>
+
+            <div id="results" class="results hidden">
+                <div class="answer-box">
+                    <h3>✅ Recommended Answer</h3>
+                    <div id="answerText" class="answer-text"></div>
+                </div>
+
+                <div class="analysis-details">
+                    <h4>📋 Analysis Details</h4>
+                    <div id="analysisDetails"></div>
+                </div>
+
+                <div class="confidence">
+                    <h4>🎯 Confidence Level</h4>
+                    <div id="confidenceBar" class="confidence-bar">
+                        <div id="confidenceFill" class="confidence-fill"></div>
+                    </div>
+                    <span id="confidenceText"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Test Tab -->
+        <div id="manual" class="tab-content">
+            <div class="section">
+                <h3>Select Test to Run</h3>
+                <select id="testIdSelect" class="select-input">
+                    <option value="">-- Select Test ID --</option>
+                    <optgroup label="Category 4: Keyboard & Focus">
+                        <option value="4.A">4.A - Keyboard Access</option>
+                        <option value="4.B">4.B - Keyboard Access (Controls)</option>
+                        <option value="4.C">4.C - No Keyboard Trap</option>
+                        <option value="4.D">4.D - Focus Visible</option>
+                        <option value="4.E">4.E - On Focus</option>
+                        <option value="4.F">4.F - Focus Order</option>
+                        <option value="4.G">4.G - Character Key Shortcuts</option>
+                    </optgroup>
+                    <optgroup label="Category 5: Forms">
+                        <option value="5.A">5.A - Form Labels Provided</option>
+                        <option value="5.B">5.B - Form Labels Descriptive</option>
+                        <option value="5.C">5.C - Programmatic Labels</option>
+                        <option value="5.D">5.D - On Input</option>
+                        <option value="5.E">5.E - Name, Role, Value</option>
+                        <option value="5.F">5.F - Error Identification</option>
+                        <option value="5.G">5.G - Error Suggestion</option>
+                        <option value="5.H">5.H - Error Prevention</option>
+                        <option value="5.I">5.I - Identify Input Purpose</option>
+                    </optgroup>
+                    <optgroup label="Category 6: Links">
+                        <option value="6.A">6.A - Link Purpose</option>
+                    </optgroup>
+                    <optgroup label="Category 7: Images">
+                        <option value="7.A">7.A - Meaningful Images</option>
+                        <option value="7.B">7.B - Decorative Images</option>
+                        <option value="7.C">7.C - CAPTCHA</option>
+                        <option value="7.D">7.D - Images of Text</option>
+                        <option value="7.E">7.E - Image Name, Role, Value</option>
+                    </optgroup>
+                    <optgroup label="Category 10: Content Structure">
+                        <option value="10.A">10.A - Heading Descriptive</option>
+                        <option value="10.B">10.B - Visual Headings Programmatic</option>
+                        <option value="10.C">10.C - Heading Levels</option>
+                        <option value="10.D">10.D - Lists</option>
+                    </optgroup>
+                    <optgroup label="Category 11: Language">
+                        <option value="11.A">11.A - Page Language</option>
+                        <option value="11.B">11.B - Part Language</option>
+                    </optgroup>
+                    <optgroup label="Category 12: Page Titles & Frames">
+                        <option value="12.A">12.A - Page Title Defined</option>
+                        <option value="12.B">12.B - Page Title Descriptive</option>
+                        <option value="12.C">12.C - Frame Titles</option>
+                        <option value="12.D">12.D - iFrame Titles</option>
+                    </optgroup>
+                    <optgroup label="Category 13: Sensory & Contrast">
+                        <option value="13.A">13.A - Sensory Characteristics</option>
+                        <option value="13.B">13.B - Use of Color</option>
+                        <option value="13.C">13.C - Contrast (Minimum)</option>
+                        <option value="13.D">13.D - Non-text Contrast</option>
+                    </optgroup>
+                    <optgroup label="Category 14: Tables">
+                        <option value="14.A">14.A - Table Headers</option>
+                        <option value="14.B">14.B - Table Header Association</option>
+                        <option value="14.C">14.C - Layout Tables</option>
+                    </optgroup>
+                    <optgroup label="Other Tests">
+                        <option value="3.A">3.A - Flashing</option>
+                        <option value="8.A">8.A - Timing Adjustable</option>
+                        <option value="9.A">9.A - Bypass Blocks</option>
+                        <option value="18.A">18.A - Resize Text</option>
+                        <option value="19.A">19.A - Multiple Ways</option>
+                        <option value="20.A">20.A - Parsing</option>
+                    </optgroup>
+                </select>
+
+                <button id="runManualTest" class="btn btn-secondary">
+                    🔬 Run Test on Current Page
+                </button>
+
+                <div id="manualResults" class="manual-results hidden"></div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history" class="tab-content">
+            <div class="section">
+                <h3>Recent Analyses</h3>
+                <div id="historyList" class="history-list">
+                    <p class="empty-state">No analysis history yet</p>
+                </div>
+                <button id="clearHistory" class="btn btn-danger btn-sm">Clear All History</button>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message hidden"></div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
