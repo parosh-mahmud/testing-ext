@@ -88,25 +88,33 @@ e. Fail - More than one <title> element is defined for the web page."></textarea
                 <h3>Select Test to Run</h3>
                 <select id="testIdSelect" class="select-input">
                     <option value="">-- Select Test ID --</option>
-                    <optgroup label="Category 4: Keyboard & Focus">
+                    <optgroup label="Category 1: Conforming Alternate Version">
+                        <option value="1.A">1.A - Conforming Alternate Version</option>
+                    </optgroup>
+                    <optgroup label="Category 2: Auto-Playing & Auto-Updating">
+                        <option value="2.A">2.A - Auto-Playing Audio</option>
+                        <option value="2.B">2.B - Auto-Updating Content</option>
+                    </optgroup>
+                    <optgroup label="Category 3: Flashing">
+                        <option value="3.A">3.A - Flashing</option>
+                    </optgroup>
+                    <optgroup label="Category 4: Keyboard Access & Focus">
                         <option value="4.A">4.A - Keyboard Access</option>
-                        <option value="4.B">4.B - Keyboard Access (Controls)</option>
-                        <option value="4.C">4.C - No Keyboard Trap</option>
-                        <option value="4.D">4.D - Focus Visible</option>
+                        <option value="4.B">4.B - No Keyboard Trap</option>
+                        <option value="4.C">4.C - Focus Visible</option>
+                        <option value="4.D">4.D - Focus Order</option>
                         <option value="4.E">4.E - On Focus</option>
-                        <option value="4.F">4.F - Focus Order</option>
+                        <option value="4.F">4.F - On Input</option>
                         <option value="4.G">4.G - Character Key Shortcuts</option>
                     </optgroup>
                     <optgroup label="Category 5: Forms">
-                        <option value="5.A">5.A - Form Labels Provided</option>
-                        <option value="5.B">5.B - Form Labels Descriptive</option>
-                        <option value="5.C">5.C - Programmatic Labels</option>
-                        <option value="5.D">5.D - On Input</option>
-                        <option value="5.E">5.E - Name, Role, Value</option>
-                        <option value="5.F">5.F - Error Identification</option>
-                        <option value="5.G">5.G - Error Suggestion</option>
-                        <option value="5.H">5.H - Error Prevention</option>
-                        <option value="5.I">5.I - Identify Input Purpose</option>
+                        <option value="5.A">5.A - Form Labels</option>
+                        <option value="5.B">5.B - Form Label Descriptive</option>
+                        <option value="5.C">5.C - Programmatic Label</option>
+                        <option value="5.D">5.D - Error Identification</option>
+                        <option value="5.E">5.E - Error Suggestion</option>
+                        <option value="5.F">5.F - Error Prevention</option>
+                        <option value="5.G">5.G - Identify Input Purpose</option>
                     </optgroup>
                     <optgroup label="Category 6: Links">
                         <option value="6.A">6.A - Link Purpose</option>
@@ -115,43 +123,78 @@ e. Fail - More than one <title> element is defined for the web page."></textarea
                         <option value="7.A">7.A - Meaningful Images</option>
                         <option value="7.B">7.B - Decorative Images</option>
                         <option value="7.C">7.C - CAPTCHA</option>
-                        <option value="7.D">7.D - Images of Text</option>
-                        <option value="7.E">7.E - Image Name, Role, Value</option>
+                        <option value="7.D">7.D - Image of Text</option>
                     </optgroup>
-                    <optgroup label="Category 10: Content Structure">
-                        <option value="10.A">10.A - Heading Descriptive</option>
-                        <option value="10.B">10.B - Visual Headings Programmatic</option>
-                        <option value="10.C">10.C - Heading Levels</option>
-                        <option value="10.D">10.D - Lists</option>
+                    <optgroup label="Category 8: Adjustable Time Limits">
+                        <option value="8.A">8.A - Adjustable Time Limits</option>
+                    </optgroup>
+                    <optgroup label="Category 9: Repetitive Content">
+                        <option value="9.A">9.A - Bypass Blocks</option>
+                    </optgroup>
+                    <optgroup label="Category 10: Page & Content Titles">
+                        <option value="10.A">10.A - Page Titled</option>
+                        <option value="10.B">10.B - Heading Descriptive</option>
+                        <option value="10.C">10.C - Heading Level</option>
+                        <option value="10.D">10.D - Visually Apparent Lists</option>
                     </optgroup>
                     <optgroup label="Category 11: Language">
                         <option value="11.A">11.A - Page Language</option>
                         <option value="11.B">11.B - Part Language</option>
                     </optgroup>
-                    <optgroup label="Category 12: Page Titles & Frames">
+                    <optgroup label="Category 12: Page Titles, Frames & iFrames">
                         <option value="12.A">12.A - Page Title Defined</option>
                         <option value="12.B">12.B - Page Title Descriptive</option>
-                        <option value="12.C">12.C - Frame Titles</option>
-                        <option value="12.D">12.D - iFrame Titles</option>
+                        <option value="12.C">12.C - Frame Title</option>
+                        <option value="12.D">12.D - iFrame Title</option>
                     </optgroup>
-                    <optgroup label="Category 13: Sensory & Contrast">
+                    <optgroup label="Category 13: Sensory Characteristics & Contrast">
                         <option value="13.A">13.A - Sensory Characteristics</option>
                         <option value="13.B">13.B - Use of Color</option>
-                        <option value="13.C">13.C - Contrast (Minimum)</option>
+                        <option value="13.C">13.C - Contrast Minimum</option>
                         <option value="13.D">13.D - Non-text Contrast</option>
                     </optgroup>
-                    <optgroup label="Category 14: Tables">
-                        <option value="14.A">14.A - Table Headers</option>
-                        <option value="14.B">14.B - Table Header Association</option>
-                        <option value="14.C">14.C - Layout Tables</option>
+                    <optgroup label="Category 14: Data Tables">
+                        <option value="14.A">14.A - Table Header Identification</option>
+                        <option value="14.B">14.B - Table Cell Header Association</option>
+                        <option value="14.C">14.C - Layout Table Structure</option>
                     </optgroup>
-                    <optgroup label="Other Tests">
-                        <option value="3.A">3.A - Flashing</option>
-                        <option value="8.A">8.A - Timing Adjustable</option>
-                        <option value="9.A">9.A - Bypass Blocks</option>
-                        <option value="18.A">18.A - Resize Text</option>
-                        <option value="19.A">19.A - Multiple Ways</option>
-                        <option value="20.A">20.A - Parsing</option>
+                    <optgroup label="Category 15: CSS Content & Positioning">
+                        <option value="15.A">15.A - CSS Content and Positioning</option>
+                    </optgroup>
+                    <optgroup label="Category 16: Pre-Recorded Audio-Only, Video-Only">
+                        <option value="16.A">16.A - Audio-Only and Video-Only (Prerecorded)</option>
+                    </optgroup>
+                    <optgroup label="Category 17: Synchronized Media">
+                        <option value="17.A">17.A - Media Alternative - Prerecorded</option>
+                        <option value="17.B">17.B - Captions - Prerecorded</option>
+                        <option value="17.C">17.C - Audio Description - Prerecorded</option>
+                        <option value="17.D">17.D - Captions - Live</option>
+                    </optgroup>
+                    <optgroup label="Category 18: Stylesheet Non-dependence">
+                        <option value="18.A">18.A - Stylesheet Non-dependence</option>
+                    </optgroup>
+                    <optgroup label="Category 19: Frames & iFrames">
+                        <option value="19.A">19.A - Frame Title</option>
+                        <option value="19.B">19.B - iFrame Title</option>
+                    </optgroup>
+                    <optgroup label="Category 20: Alternate Versions">
+                        <option value="20.A">20.A - Conforming Alternate Version</option>
+                    </optgroup>
+                    <optgroup label="Category 21: Timed Events">
+                        <option value="21.A">21.A - Timing Adjustable</option>
+                    </optgroup>
+                    <optgroup label="Category 22: Moving, Blinking, Scrolling">
+                        <option value="22.A">22.A - Moving/Blinking/Scrolling Content</option>
+                        <option value="22.B">22.B - Auto-Updating Information</option>
+                    </optgroup>
+                    <optgroup label="Category 23: Multiple Ways">
+                        <option value="23.A">23.A - Multiple Ways</option>
+                    </optgroup>
+                    <optgroup label="Category 24: Parsing">
+                        <option value="24.A">24.A - Parsing</option>
+                    </optgroup>
+                    <optgroup label="Category 25: Non-Interference">
+                        <option value="25.A">25.A - Non-Interference</option>
                     </optgroup>
                 </select>
 

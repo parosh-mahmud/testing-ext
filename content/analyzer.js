@@ -637,11 +637,33 @@ const PageAnalyzer = {
       // Category 18: Resize Text
       "18.A": () => this.analyzeResizeText(),
 
-      // Category 19: Multiple Ways
-      "19.A": () => this.analyzeMultipleWays(),
+      // Category 19: Frames & iFrames
+      "19.A": () => this.analyzeFrameTitles(),
+      "19.B": () => this.analyzeIframeTitles(),
 
-      // Category 20: Parsing
-      "20.A": () => this.analyzeParsing(),
+      // Category 20: Alternate Versions
+      "20.A": () => this.analyzeConformingAlternate(), // Reuse 1.A
+
+      // Category 21: Timed Events
+      "21.A": () => this.analyzeTimeLimits(), // Reuse 8.A
+
+      // Category 22: Moving, Blinking, Scrolling
+      "22.A": () => this.analyzeAutoPlayingAudio(), // Similar to 2.A
+      "22.B": () => this.analyzeAutoUpdatingContent(), // Reuse 2.B
+
+      // Category 23: Multiple Ways
+      "23.A": () => this.analyzeMultipleWays(),
+
+      // Category 24: Parsing
+      "24.A": () => this.analyzeParsing(),
+
+      // Category 25: Non-Interference
+      "25.A": () => ({
+        testId: "25.A",
+        requiresManualTest: true,
+        guidance:
+          "Verify the page does not use technologies that cause interference with assistive technology",
+      }),
     };
 
     const analyzer = analyzers[testId];
@@ -2124,29 +2146,30 @@ const PageAnalyzer = {
 
   interpretResults(testId, analysis) {
     const interpreters = {
+      // CATEGORY 12: Page Titles
       "12.A": (data) => {
         if (data.titleCount === 0) {
           return {
-            status: "FAIL",
+            status: "Fail",
             findings: "No <title> element found",
             details:
               "The page must have exactly one <title> element in the <head> section",
           };
         } else if (data.titleCount > 1) {
           return {
-            status: "FAIL",
+            status: "Fail",
             findings: `${data.titleCount} <title> elements found`,
             details: "Only one <title> element is allowed per page",
           };
         } else if (data.titleIsEmpty) {
           return {
-            status: "FAIL",
+            status: "Fail",
             findings: "Title element exists but is empty",
             details: "The <title> must contain descriptive text",
           };
         } else {
           return {
-            status: "PASS",
+            status: "Pass",
             findings: `Page has valid title: "${data.titleText}"`,
             details: "One <title> element with descriptive text",
           };
@@ -2156,88 +2179,794 @@ const PageAnalyzer = {
       "12.B": (data) => {
         if (data.isDescriptive) {
           return {
-            status: "PASS",
+            status: "Pass",
             findings: `Title is descriptive: "${data.title}"`,
             details: "Title adequately describes the page purpose",
           };
         } else {
           return {
-            status: "FAIL",
+            status: "Fail",
             findings: `Title not descriptive enough: "${data.title}"`,
             details: data.suggestions.join("; "),
           };
         }
       },
 
+      "12.C": (data) => {
+        if (data.frameCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No frames found on page",
+            details: "Test only applies to pages with <frame> elements",
+          };
+        }
+        if (data.framesWithoutTitles > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.framesWithoutTitles} frame(s) missing title attribute`,
+            details: "All frames must have descriptive title attributes",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "All frames have descriptive titles",
+          details: `${data.frameCount} frames checked`,
+        };
+      },
+
+      "12.D": (data) => {
+        if (data.iframeCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No iframes found on page",
+            details: "Test only applies to pages with <iframe> elements",
+          };
+        }
+        if (data.iframesWithoutTitles > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.iframesWithoutTitles} iframe(s) missing title attribute`,
+            details: "All iframes must have descriptive title attributes",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "All iframes have descriptive titles",
+          details: `${data.iframeCount} iframes checked`,
+        };
+      },
+
+      // CATEGORY 7: Images
       "7.A": (data) => {
+        if (data.totalImages === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No images found on page",
+            details: "Test only applies when images are present",
+          };
+        }
         if (data.imagesWithoutAlt > 0) {
           return {
-            status: "FAIL",
+            status: "Fail",
             findings: `${data.imagesWithoutAlt} image(s) missing alt attribute`,
             details: "All meaningful images must have alt text",
           };
         } else {
           return {
-            status: "PASS",
+            status: "Pass",
             findings: "All images have alt attributes",
             details: `${data.totalImages} images checked`,
           };
         }
       },
 
-      "10.C": (data) => {
-        if (data.isLogical) {
+      "7.B": (data) => {
+        if (data.decorativeCount === 0) {
           return {
-            status: "PASS",
-            findings: "Heading structure is logical",
-            details: `${data.headingCount} headings with proper hierarchy`,
+            status: "Does Not Apply",
+            findings: "No decorative images identified",
+            details: "Test only applies to decorative images",
+          };
+        }
+        const improper = data.decorativeCount - data.properlyMarked;
+        if (improper > 0) {
+          return {
+            status: "Fail",
+            findings: `${improper} decorative image(s) not properly marked`,
+            details: 'Use alt="" or role="presentation" for decorative images',
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "All decorative images properly marked",
+          details: `${data.decorativeCount} decorative images checked`,
+        };
+      },
+
+      "7.C": (data) => {
+        if (!data.hasCaptcha) {
+          return {
+            status: "Does Not Apply",
+            findings: "No CAPTCHA found on page",
+            details: "Test only applies when CAPTCHA is present",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "CAPTCHA requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "7.D": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Image of text requires manual evaluation",
+          details: data.guidance,
+        };
+      },
+
+      // CATEGORY 10: Headings
+      "10.A": (data) => {
+        if (data.headingCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No headings found on page",
+            details: "Test only applies when headings exist",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Heading descriptiveness requires manual evaluation",
+          details: data.guidance,
+        };
+      },
+
+      "10.B": (data) => {
+        if (data.programmaticHeadings === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No headings found on page",
+            details: "Test only applies when headings exist",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Visual heading identification requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "10.C": (data) => {
+        if (data.headingCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No headings found on page",
+            details: "Test only applies when headings exist",
+          };
+        }
+        if (!data.isLogical) {
+          return {
+            status: "Fail",
+            findings: "Heading structure issues found",
+            details: data.issues.join("; "),
           };
         } else {
           return {
-            status: "FAIL",
-            findings: "Heading structure issues found",
-            details: data.issues.join("; "),
+            status: "Pass",
+            findings: "Heading structure is logical",
+            details: `${data.headingCount} headings with proper hierarchy`,
           };
         }
       },
 
+      "10.D": (data) => {
+        if (data.semanticLists === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No lists found on page",
+            details: "Test only applies when lists exist",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "List structure requires manual evaluation",
+          details: data.guidance,
+        };
+      },
+
+      // CATEGORY 5: Forms
+      "5.A": (data) => {
+        if (data.totalFields === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No form fields found",
+            details: "Test only applies when form inputs exist",
+          };
+        }
+        if (data.fieldsWithoutVisibleLabels > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.fieldsWithoutVisibleLabels} field(s) without visible labels`,
+            details: "All form fields must have visible labels or instructions",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "All form fields have visible labels",
+          details: `${data.totalFields} fields checked`,
+        };
+      },
+
+      "5.B": (data) => {
+        if (data.totalLabels === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No form labels found",
+            details: "Test only applies when form labels exist",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Label descriptiveness requires manual evaluation",
+          details: data.guidance,
+        };
+      },
+
       "5.C": (data) => {
+        if (data.totalFields === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No form fields found",
+            details: "Test only applies when form inputs exist",
+          };
+        }
         if (data.fieldsWithoutLabels > 0) {
           return {
-            status: "FAIL",
+            status: "Fail",
             findings: `${data.fieldsWithoutLabels} field(s) without programmatic labels`,
             details: "Form fields need <label>, aria-label, or aria-labelledby",
           };
         } else {
           return {
-            status: "PASS",
+            status: "Pass",
             findings: "All form fields have programmatic labels",
             details: `${data.totalFields} fields properly labeled`,
           };
         }
       },
 
+      "5.D": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Error identification requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "5.E": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Error suggestion requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "5.F": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Error prevention requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "5.G": (data) => {
+        if (data.personalInfoFieldCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No personal information fields found",
+            details: "Test only applies to fields collecting user information",
+          };
+        }
+        if (data.fieldsWithoutAutocomplete > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.fieldsWithoutAutocomplete} personal info field(s) missing autocomplete`,
+            details: "Personal info fields should have autocomplete attributes",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "Personal info fields have autocomplete",
+          details: `${data.personalInfoFieldCount} fields checked`,
+        };
+      },
+
+      // CATEGORY 6: Links
+      "6.A": (data) => {
+        if (data.totalLinks === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No links found on page",
+            details: "Test only applies when links exist",
+          };
+        }
+        if (data.ambiguousLinks > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.ambiguousLinks} link(s) with unclear purpose`,
+            details: "Links need descriptive text or context",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "All links have clear purpose",
+          details: `${data.totalLinks} links checked`,
+        };
+      },
+
+      // CATEGORY 11: Language
       "11.A": (data) => {
         if (!data.hasLang) {
           return {
-            status: "FAIL",
+            status: "Fail",
             findings: "No lang attribute on <html> element",
             details:
               "Page must have lang attribute to identify primary language",
           };
         } else if (!data.isValid) {
           return {
-            status: "FAIL",
+            status: "Fail",
             findings: `Invalid language code: "${data.lang}"`,
             details: "Use valid language codes (e.g., 'en', 'es', 'fr')",
           };
         } else {
           return {
-            status: "PASS",
+            status: "Pass",
             findings: `Page language set to: ${data.lang}`,
             details: "Valid language identification",
           };
         }
+      },
+
+      "11.B": (data) => {
+        if (data.elementsWithLang === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No elements with different language identified",
+            details: "Test applies when content has multiple languages",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Part language requires manual evaluation",
+          details: data.guidance,
+        };
+      },
+
+      // CATEGORY 14: Tables
+      "14.A": (data) => {
+        if (data.totalTables === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No tables found on page",
+            details: "Test only applies when tables exist",
+          };
+        }
+        if (data.tablesWithoutHeaders > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.tablesWithoutHeaders} data table(s) without headers`,
+            details: "Data tables must have <th> elements",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "All data tables have headers",
+          details: `${data.totalTables} tables checked`,
+        };
+      },
+
+      "14.B": (data) => {
+        if (data.totalTables === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No tables found on page",
+            details: "Test only applies when tables exist",
+          };
+        }
+        if (data.tablesWithoutAssociations > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.tablesWithoutAssociations} table(s) missing header associations`,
+            details: "Table headers need scope or headers/id associations",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "All tables have proper header associations",
+          details: `${data.totalTables} tables checked`,
+        };
+      },
+
+      "14.C": (data) => {
+        if (data.totalTables === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No tables found on page",
+            details: "Test only applies when tables exist",
+          };
+        }
+        if (data.layoutTables === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No layout tables found",
+            details: "Test only applies to layout tables",
+          };
+        }
+        if (data.incorrectLayoutTables > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.incorrectLayoutTables} layout table(s) use data table markup`,
+            details: "Layout tables should not use <th>, scope, or summary",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "Layout tables properly structured",
+          details: `${data.layoutTables} layout tables checked`,
+        };
+      },
+
+      // CATEGORY 4: Keyboard
+      "4.A": (data) => {
+        if (data.interactiveElements === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No interactive elements found",
+            details: "Test only applies when interactive functionality exists",
+          };
+        }
+        if (data.nonFocusableInteractive > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.nonFocusableInteractive} interactive element(s) not keyboard accessible`,
+            details: "All interactive elements must be keyboard focusable",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "All interactive elements are keyboard accessible",
+          details: `${data.focusableElements} elements checked`,
+        };
+      },
+
+      "4.B": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Keyboard trap requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "4.C": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Focus visibility requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "4.D": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Focus order requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "4.E": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "On focus behavior requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "4.F": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "On input behavior requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "4.G": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Character key shortcuts require manual testing",
+          details: data.guidance,
+        };
+      },
+
+      // CATEGORY 13: Sensory & Contrast
+      "13.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Sensory characteristics require manual evaluation",
+          details: data.guidance,
+        };
+      },
+
+      "13.B": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Color usage requires manual evaluation",
+          details: data.guidance,
+        };
+      },
+
+      "13.C": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Contrast requires color contrast analyzer tool",
+          details: data.guidance,
+        };
+      },
+
+      "13.D": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Non-text contrast requires color contrast analyzer tool",
+          details: data.guidance,
+        };
+      },
+
+      // CATEGORY 1-3: Other tests
+      "1.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Conforming alternate version requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "2.A": (data) => {
+        if (!data.hasAutoplay) {
+          return {
+            status: "Does Not Apply",
+            findings: "No auto-playing audio/video found",
+            details: "Test only applies when content auto-plays",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Auto-playing content requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "2.B": (data) => {
+        if (!data.hasMetaRefresh) {
+          return {
+            status: "Does Not Apply",
+            findings: "No auto-updating content found",
+            details: "Test only applies when content auto-updates",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Auto-updating content requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "3.A": (data) => {
+        if (!data.hasFlashing || data.flashingElements === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No flashing content detected",
+            details: "Test only applies when content flashes",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Flashing content requires PEAT tool",
+          details: data.guidance,
+        };
+      },
+
+      // CATEGORY 8-9: Time limits and repetitive content
+      "8.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Time limits require manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "9.A": (data) => {
+        if (!data.hasSkipLinks && !data.hasLandmarks) {
+          return {
+            status: "Fail",
+            findings: "No bypass mechanism found (skip links, landmarks, or headings)",
+            details: "Pages must provide a way to bypass repetitive content",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "Bypass mechanism available",
+          details: `Skip links: ${data.skipLinkCount}, Landmarks: ${data.landmarkCount}, Headings: ${data.headingCount}`,
+        };
+      },
+
+      // New categories 15-25
+      "15.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "CSS positioning requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "16.A": (data) => {
+        if (data.videoCount + data.audioCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No audio or video elements found",
+            details: "Test only applies when audio/video is present",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Audio/video alternatives require manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "17.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Media alternatives require manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "17.B": (data) => {
+        if (!data.videoCount || data.videoCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No video elements found",
+            details: "Test only applies when video is present",
+          };
+        }
+        return {
+          status: "Does Not Apply",
+          findings: "Captions require manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "17.C": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Audio description requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "17.D": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Live captions require manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "18.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Stylesheet non-dependence requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "19.A": (data) => {
+        // Same as 12.C
+        if (data.frameCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No frames found on page",
+            details: "Test only applies to pages with <frame> elements",
+          };
+        }
+        return interpreters["12.C"](data);
+      },
+
+      "19.B": (data) => {
+        // Same as 12.D
+        if (data.iframeCount === 0) {
+          return {
+            status: "Does Not Apply",
+            findings: "No iframes found on page",
+            details: "Test only applies to pages with <iframe> elements",
+          };
+        }
+        return interpreters["12.D"](data);
+      },
+
+      "20.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Conforming alternate version requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "21.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Timing adjustable requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "22.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Moving/blinking/scrolling content requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "22.B": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Auto-updating information requires manual testing",
+          details: data.guidance,
+        };
+      },
+
+      "23.A": (data) => {
+        const mechanismCount =
+          (data.hasNavigation ? 1 : 0) +
+          (data.hasSearch ? 1 : 0) +
+          (data.hasSitemap ? 1 : 0);
+        if (mechanismCount < 2) {
+          return {
+            status: "Fail",
+            findings: "Less than 2 ways to find pages",
+            details: "Must provide at least 2: navigation, search, sitemap, breadcrumbs",
+          };
+        }
+        return {
+          status: "Pass",
+          findings: `${mechanismCount} ways to find pages detected`,
+          details: "Multiple navigation mechanisms available",
+        };
+      },
+
+      "24.A": (data) => {
+        if (data.duplicateIds > 0) {
+          return {
+            status: "Fail",
+            findings: `${data.duplicateIds} duplicate ID(s) found`,
+            details: "IDs must be unique: " + data.duplicateIdList.join(", "),
+          };
+        }
+        return {
+          status: "Pass",
+          findings: "No duplicate IDs found",
+          details: "HTML parsing checks passed",
+        };
+      },
+
+      "25.A": (data) => {
+        return {
+          status: "Does Not Apply",
+          findings: "Non-interference requires manual testing",
+          details: data.guidance,
+        };
       },
     };
 
@@ -2248,15 +2977,15 @@ const PageAnalyzer = {
 
     if (analysis.requiresManualTest) {
       return {
-        status: "MANUAL",
+        status: "Does Not Apply",
         findings: analysis.guidance || "Manual testing required",
         details: JSON.stringify(analysis).substring(0, 200),
       };
     }
 
     return {
-      status: "UNKNOWN",
-      findings: "Automated analysis not available",
+      status: "Does Not Apply",
+      findings: "Automated analysis not available for this test",
       details: JSON.stringify(analysis).substring(0, 200),
     };
   },
