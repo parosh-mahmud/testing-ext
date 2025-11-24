@@ -2270,35 +2270,35 @@ const PageAnalyzer = {
       },
 
       "10.C": (data) => {
-        if (data.isLogical) {
+        if (data.headingCount === 0) {
           return {
-            status: "PASS",
-            findings: "Heading structure is logical",
-            details: `${data.headingCount} headings with proper hierarchy`,
-          };
-        } else {
-          return {
-            status: "FAIL",
-            findings: "Heading structure issues found",
-            details: data.issues.join("; "),
+            status: "DNA",
+            findings: "No headings found on page",
+            details: "Test Does Not Apply - No heading hierarchy to evaluate",
           };
         }
-      },
 
-      "5.C": (data) => {
-        if (data.fieldsWithoutLabels > 0) {
+        if (!data.hasH1) {
           return {
             status: "FAIL",
-            findings: `${data.fieldsWithoutLabels} field(s) without programmatic labels`,
-            details: "Form fields need <label>, aria-label, or aria-labelledby",
-          };
-        } else {
-          return {
-            status: "PASS",
-            findings: "All form fields have programmatic labels",
-            details: `${data.totalFields} fields properly labeled`,
+            findings: "Page missing H1 heading",
+            details: "Page should have at least one H1 as the main heading",
           };
         }
+
+        if (!data.isLogical) {
+          return {
+            status: "FAIL",
+            findings: "Heading hierarchy has logical issues",
+            details: data.issues.join("; ") + ". Headings should not skip levels.",
+          };
+        }
+
+        return {
+          status: "PASS",
+          findings: "Heading hierarchy is logical and properly nested",
+          details: `${data.headingCount} headings follow proper structure without skipping levels`,
+        };
       },
 
       "11.A": (data) => {
@@ -2306,22 +2306,191 @@ const PageAnalyzer = {
           return {
             status: "FAIL",
             findings: "No lang attribute on <html> element",
-            details:
-              "Page must have lang attribute to identify primary language",
+            details: "Page must have lang attribute to identify primary language",
           };
-        } else if (!data.isValid) {
+        }
+
+        if (!data.isValid) {
           return {
             status: "FAIL",
             findings: `Invalid language code: "${data.lang}"`,
             details: "Use valid language codes (e.g., 'en', 'es', 'fr')",
           };
-        } else {
+        }
+
+        return {
+          status: "PASS",
+          findings: `Page language set to: ${data.lang}`,
+          details: "Valid language identification",
+        };
+      },
+
+      "14.A": (data) => {
+        if (data.totalTables === 0) {
           return {
-            status: "PASS",
-            findings: `Page language set to: ${data.lang}`,
-            details: "Valid language identification",
+            status: "DNA",
+            findings: "No tables found on page",
+            details: "Test Does Not Apply - No table structures exist",
           };
         }
+
+        const dataTablesNoHeaders = data.details ?
+          data.details.filter(t => t.isDataTable && !t.hasHeaders).length :
+          data.tablesWithoutHeaders || 0;
+
+        if (dataTablesNoHeaders > 0) {
+          return {
+            status: "FAIL",
+            findings: `${dataTablesNoHeaders} data table(s) missing <th> headers`,
+            details: "Data tables must use <th> elements to identify row/column headers",
+          };
+        }
+
+        return {
+          status: "PASS",
+          findings: "All data tables properly use <th> elements",
+          details: `${data.totalTables} tables checked - data tables have proper header structure`,
+        };
+      },
+
+      "4.A": (data) => {
+        if (data.interactiveElements === 0) {
+          return {
+            status: "DNA",
+            findings: "No interactive elements found",
+            details: "Test Does Not Apply - No interactive functionality exists",
+          };
+        }
+
+        const nonFocusable = data.nonFocusableInteractive || 0;
+
+        if (nonFocusable > 0) {
+          return {
+            status: "FAIL",
+            findings: `${nonFocusable} interactive element(s) not keyboard accessible`,
+            details: "Interactive elements must be keyboard accessible (focusable via Tab)",
+          };
+        }
+
+        return {
+          status: "PASS",
+          findings: `All ${data.focusableElements} interactive elements appear keyboard accessible`,
+          details: "All interactive elements have appropriate tabindex or are natively focusable",
+        };
+      },
+
+      "5.A": (data) => {
+        if (data.totalFields === 0) {
+          return {
+            status: "DNA",
+            findings: "No form fields found on page",
+            details: "Test Does Not Apply - No form inputs exist",
+          };
+        }
+
+        const withoutVisibleLabel = data.fieldsWithoutVisibleLabels || 0;
+
+        if (withoutVisibleLabel > 0) {
+          return {
+            status: "FAIL",
+            findings: `${withoutVisibleLabel} field(s) lack visible label or instruction`,
+            details: "Every form field must have a visible label, instruction, or cue",
+          };
+        }
+
+        return {
+          status: "PASS",
+          findings: "All form fields have visible labels or instructions",
+          details: `${data.totalFields} fields checked - all have visual identification`,
+        };
+      },
+
+      "5.B": (data) => {
+        if (data.totalLabels === 0) {
+          return {
+            status: "DNA",
+            findings: "No form labels found on page",
+            details: "Test Does Not Apply - No form labels exist",
+          };
+        }
+
+        if (data.genericLabels > 0) {
+          return {
+            status: "FAIL",
+            findings: `${data.genericLabels} label(s) are not descriptive`,
+            details: "Form labels must clearly describe the purpose or expected input",
+          };
+        }
+
+        return {
+          status: "PASS",
+          findings: "All form labels are descriptive",
+          details: `${data.totalLabels} labels checked - all clearly describe their purpose`,
+        };
+      },
+
+      "5.C": (data) => {
+        if (data.totalFields === 0) {
+          return {
+            status: "DNA",
+            findings: "No form fields found on page",
+            details: "Test Does Not Apply - No form inputs exist",
+          };
+        }
+
+        if (data.fieldsWithoutLabels > 0) {
+          return {
+            status: "FAIL",
+            findings: `${data.fieldsWithoutLabels} field(s) lack programmatic label association`,
+            details: "Form fields need <label for='id'>, aria-label, or aria-labelledby",
+          };
+        }
+
+        if (data.onlyPlaceholder > 0) {
+          return {
+            status: "FAIL",
+            findings: `${data.onlyPlaceholder} field(s) use placeholder only (insufficient)`,
+            details: "Placeholder attribute alone is NOT sufficient - must have proper label association",
+          };
+        }
+
+        return {
+          status: "PASS",
+          findings: "All form fields have programmatic label associations",
+          details: `${data.totalFields} fields properly labeled`,
+        };
+      },
+
+      "6.A": (data) => {
+        if (data.totalLinks === 0) {
+          return {
+            status: "DNA",
+            findings: "No links found on page",
+            details: "Test Does Not Apply - No links exist",
+          };
+        }
+
+        if (data.ambiguousLinks > 0) {
+          return {
+            status: "FAIL",
+            findings: `${data.ambiguousLinks} link(s) have unclear or missing purpose`,
+            details: "Links need descriptive text, aria-label, or surrounding context",
+          };
+        }
+
+        if (data.genericLinks > 5) {
+          return {
+            status: "FAIL",
+            findings: `${data.genericLinks} links use generic text like "click here"`,
+            details: "Generic link text should include aria-label or be in descriptive context",
+          };
+        }
+
+        return {
+          status: "PASS",
+          findings: "All links have clear, determinable purpose",
+          details: `${data.totalLinks} links checked - all have descriptive text or proper labels`,
+        };
       },
     };
 
