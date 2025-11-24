@@ -334,9 +334,9 @@ class PopupController {
    * Run manual test
    */
   async runManualTest() {
-    const testId = document.getElementById("testIdSelect")?.value;
+    const testName = document.getElementById("testNameSelect")?.value;
 
-    if (!testId) {
+    if (!testName) {
       this.showStatus("Please select a test to run", "warning");
       return;
     }
@@ -352,7 +352,21 @@ class PopupController {
         return;
       }
 
-      // Run test
+      // Convert test name to test ID for the analyzer
+      const testMapping = await this.executeScript(tab.id, (testName) => {
+        if (typeof TrustedTesterMapping !== "undefined") {
+          const test = TrustedTesterMapping.getTestByName(testName);
+          return test ? test.id : null;
+        }
+        return null;
+      }, [testName]);
+
+      if (!testMapping) {
+        this.showStatus("Could not find test mapping", "error");
+        return;
+      }
+
+      // Run test using the test ID
       const result = await this.executeScript(
         tab.id,
         (testId) => {
@@ -362,11 +376,11 @@ class PopupController {
             throw new Error("PageAnalyzer not loaded");
           }
         },
-        [testId]
+        [testMapping]
       );
 
-      this.displayManualTestResult(result, testId);
-      this.showStatus(`Test ${testId} completed`, "success");
+      this.displayManualTestResult(result, testName, testMapping);
+      this.showStatus(`Test ${testName} completed`, "success");
     } catch (error) {
       console.error("Manual test error:", error);
       this.showStatus(`Error: ${error.message}`, "error");
@@ -517,7 +531,7 @@ class PopupController {
   /**
    * Display manual test results
    */
-  displayManualTestResult(result, testId) {
+  displayManualTestResult(result, testName, testId) {
     const resultsDiv = document.getElementById("manualResults");
     if (!resultsDiv) return;
 
@@ -532,7 +546,7 @@ class PopupController {
 
     resultsDiv.innerHTML = `
             <div class="manual-test-result ${statusClass}">
-                <h4>Test ${testId} Results</h4>
+                <h4>${this.escapeHtml(testName)} (${testId})</h4>
                 <div class="result-status">
                     <strong>Status:</strong> ${result.status}
                 </div>
